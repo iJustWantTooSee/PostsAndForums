@@ -21,10 +21,8 @@ namespace Backend6.Models
 
         public ICollection<ForumMessageAttachment> ForumMessageAttachments { get; set; }
 
-        [Required]
         public DateTime Created { get; set; }
 
-        [Required]
         public DateTime Modified { get; set; }
 
         [Required]

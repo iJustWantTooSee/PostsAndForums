@@ -14,7 +14,6 @@ namespace Backend6.Models
 
         public ForumMessage ForumMessage { get; set; }
 
-        [Required]
         public DateTime Created { get; set; }
 
         [Required]

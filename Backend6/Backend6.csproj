@@ -4,6 +4,12 @@
     <UserSecretsId>aspnet-Backend6-4fd1b34e-3551-4869-9119-f7b6184396dc</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Data\Migrations\20210331054311_AddForumMessageAttachments.cs" />
+    <Compile Remove="Data\Migrations\20210331054311_AddForumMessageAttachments.Designer.cs" />
+    <Compile Remove="Data\Migrations\20210331074556_AddFixDataTimeFields.cs" />
+    <Compile Remove="Data\Migrations\20210331074556_AddFixDataTimeFields.Designer.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.3" PrivateAssets="All" />

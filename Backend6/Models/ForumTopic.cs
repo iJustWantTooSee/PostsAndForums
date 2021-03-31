@@ -21,7 +21,6 @@ namespace Backend6.Models
 
         public ICollection<ForumMessage> ForumMessages { get; set; }
 
-        [Required]
         public DateTime Created { get; set; }
 
         [Required]

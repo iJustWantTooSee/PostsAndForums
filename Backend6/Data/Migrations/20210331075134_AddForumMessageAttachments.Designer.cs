@@ -11,7 +11,7 @@ using System;
 namespace Backend6.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210331054311_AddForumMessageAttachments")]
+    [Migration("20210331075134_AddForumMessageAttachments")]
     partial class AddForumMessageAttachments
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
