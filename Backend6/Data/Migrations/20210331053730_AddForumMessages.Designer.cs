@@ -11,9 +11,10 @@ using System;
 namespace Backend6.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210331053730_AddForumMessages")]
+    partial class AddForumMessages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -129,28 +130,6 @@ namespace Backend6.Data.Migrations
                     b.HasIndex("ForumTopicId");
 
                     b.ToTable("ForumMessages");
-                });
-
-            modelBuilder.Entity("Backend6.Models.ForumMessageAttachment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("Created");
-
-                    b.Property<string>("FileName")
-                        .IsRequired();
-
-                    b.Property<string>("FilePath")
-                        .IsRequired();
-
-                    b.Property<Guid>("ForumMessageId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ForumMessageId");
-
-                    b.ToTable("ForumMessageAttachments");
                 });
 
             modelBuilder.Entity("Backend6.Models.ForumTopic", b =>
@@ -392,14 +371,6 @@ namespace Backend6.Data.Migrations
                     b.HasOne("Backend6.Models.ForumTopic", "ForumTopic")
                         .WithMany("ForumMessages")
                         .HasForeignKey("ForumTopicId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Backend6.Models.ForumMessageAttachment", b =>
-                {
-                    b.HasOne("Backend6.Models.ForumMessage", "ForumMessage")
-                        .WithMany("ForumMessageAttachments")
-                        .HasForeignKey("ForumMessageId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

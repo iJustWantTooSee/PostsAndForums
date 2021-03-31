@@ -11,9 +11,10 @@ using System;
 namespace Backend6.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210331050909_AddForums")]
+    partial class AddForums
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -103,78 +104,6 @@ namespace Backend6.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ForumCategories");
-                });
-
-            modelBuilder.Entity("Backend6.Models.ForumMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("Created");
-
-                    b.Property<string>("CreatorId")
-                        .IsRequired();
-
-                    b.Property<Guid>("ForumTopicId");
-
-                    b.Property<DateTime>("Modified");
-
-                    b.Property<string>("Text")
-                        .IsRequired();
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatorId");
-
-                    b.HasIndex("ForumTopicId");
-
-                    b.ToTable("ForumMessages");
-                });
-
-            modelBuilder.Entity("Backend6.Models.ForumMessageAttachment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("Created");
-
-                    b.Property<string>("FileName")
-                        .IsRequired();
-
-                    b.Property<string>("FilePath")
-                        .IsRequired();
-
-                    b.Property<Guid>("ForumMessageId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ForumMessageId");
-
-                    b.ToTable("ForumMessageAttachments");
-                });
-
-            modelBuilder.Entity("Backend6.Models.ForumTopic", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("Created");
-
-                    b.Property<string>("CreatorId")
-                        .IsRequired();
-
-                    b.Property<Guid>("ForumId");
-
-                    b.Property<string>("Name")
-                        .IsRequired();
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatorId");
-
-                    b.HasIndex("ForumId");
-
-                    b.ToTable("ForumTopics");
                 });
 
             modelBuilder.Entity("Backend6.Models.Post", b =>
@@ -379,40 +308,6 @@ namespace Backend6.Data.Migrations
                     b.HasOne("Backend6.Models.ForumCategory", "ForumCategory")
                         .WithMany("Forums")
                         .HasForeignKey("ForumCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Backend6.Models.ForumMessage", b =>
-                {
-                    b.HasOne("Backend6.Models.ApplicationUser", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Backend6.Models.ForumTopic", "ForumTopic")
-                        .WithMany("ForumMessages")
-                        .HasForeignKey("ForumTopicId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Backend6.Models.ForumMessageAttachment", b =>
-                {
-                    b.HasOne("Backend6.Models.ForumMessage", "ForumMessage")
-                        .WithMany("ForumMessageAttachments")
-                        .HasForeignKey("ForumMessageId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Backend6.Models.ForumTopic", b =>
-                {
-                    b.HasOne("Backend6.Models.ApplicationUser", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Backend6.Models.Forum", "Forum")
-                        .WithMany("ForumTopics")
-                        .HasForeignKey("ForumId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
