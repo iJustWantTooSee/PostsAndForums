@@ -7,25 +7,40 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Backend6.Data;
 using Backend6.Models;
+using Backend6.Models.ForumViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Backend6.Services;
 
 namespace Backend6.Controllers
 {
+    [Authorize]
     public class ForumCategoriesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> userManager;
+        private readonly IUserPermissionsService userPermissions;
 
-        public ForumCategoriesController(ApplicationDbContext context)
+        public ForumCategoriesController(ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            IUserPermissionsService userPermissions)
         {
             _context = context;
+            this.userManager = userManager;
+            this.userPermissions = userPermissions;
         }
 
-        // GET: ForumCategories
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            return View(await _context.ForumCategories.ToListAsync());
+            var items = await this._context.ForumCategories
+                .Include(x => x.Forums)
+                .ToListAsync();
+            return this.View(items);
         }
 
         // GET: ForumCategories/Details/5
+        [AllowAnonymous]
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -34,6 +49,7 @@ namespace Backend6.Controllers
             }
 
             var forumCategory = await _context.ForumCategories
+                .Include(x => x.Forums)
                 .SingleOrDefaultAsync(m => m.Id == id);
             if (forumCategory == null)
             {
@@ -44,9 +60,10 @@ namespace Backend6.Controllers
         }
 
         // GET: ForumCategories/Create
+        [Authorize(Roles = ApplicationRoles.Administrators)]
         public IActionResult Create()
         {
-            return View();
+            return View(new ForumCategoryModel());
         }
 
         // POST: ForumCategories/Create
@@ -54,19 +71,26 @@ namespace Backend6.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] ForumCategory forumCategory)
+        [Authorize(Roles = ApplicationRoles.Administrators)]
+        public async Task<IActionResult> Create(ForumCategoryModel model)
         {
-            if (ModelState.IsValid)
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+            if (ModelState.IsValid && user != null)
             {
-                forumCategory.Id = Guid.NewGuid();
+                var forumCategory = new ForumCategory
+                {
+                    Id = Guid.NewGuid(),
+                    Name = model.Name
+                };
                 _context.Add(forumCategory);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(forumCategory);
+            return View(model);
         }
 
         // GET: ForumCategories/Edit/5
+        [Authorize(Roles = ApplicationRoles.Administrators)]
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -79,7 +103,13 @@ namespace Backend6.Controllers
             {
                 return NotFound();
             }
-            return View(forumCategory);
+
+            var model = new ForumCategoryModel
+            {
+                Name = forumCategory.Name
+            };
+            ViewBag.ForumCategory = forumCategory;
+            return View(model);
         }
 
         // POST: ForumCategories/Edit/5
@@ -87,37 +117,33 @@ namespace Backend6.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name")] ForumCategory forumCategory)
+        [Authorize(Roles = ApplicationRoles.Administrators)]
+        public async Task<IActionResult> Edit(Guid? id, ForumCategoryModel model)
         {
-            if (id != forumCategory.Id)
+            if (id == null)
             {
                 return NotFound();
             }
 
+            var forumCategory = await this._context.ForumCategories.SingleOrDefaultAsync(x => x.Id == id);
+
+            if (forumCategory == null)
+            {
+                return this.NotFound();
+            }
+
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(forumCategory);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ForumCategoryExists(forumCategory.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                forumCategory.Name = model.Name;
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewBag.ForumCategory = forumCategory;
             return View(forumCategory);
         }
 
         // GET: ForumCategories/Delete/5
+        [Authorize(Roles = ApplicationRoles.Administrators)]
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -126,29 +152,26 @@ namespace Backend6.Controllers
             }
 
             var forumCategory = await _context.ForumCategories
+                .Include(x=>x.Forums)
                 .SingleOrDefaultAsync(m => m.Id == id);
             if (forumCategory == null)
             {
                 return NotFound();
             }
-
+            ViewBag.ForumCategory = forumCategory;
             return View(forumCategory);
         }
 
         // POST: ForumCategories/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = ApplicationRoles.Administrators)]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var forumCategory = await _context.ForumCategories.SingleOrDefaultAsync(m => m.Id == id);
             _context.ForumCategories.Remove(forumCategory);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool ForumCategoryExists(Guid id)
-        {
-            return _context.ForumCategories.Any(e => e.Id == id);
         }
     }
 }

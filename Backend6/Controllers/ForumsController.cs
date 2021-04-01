@@ -7,16 +7,27 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Backend6.Data;
 using Backend6.Models;
+using Backend6.Models.ForumViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Backend6.Services;
 
 namespace Backend6.Controllers
 {
+    [Authorize]
     public class ForumsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> userManager;
+        private readonly IUserPermissionsService userPermissions;
 
-        public ForumsController(ApplicationDbContext context)
+        public ForumsController(ApplicationDbContext context,
+             UserManager<ApplicationUser> userManager,
+             IUserPermissionsService userPermissions)
         {
             _context = context;
+            this.userManager = userManager;
+            this.userPermissions = userPermissions;
         }
 
         // GET: Forums
@@ -27,6 +38,7 @@ namespace Backend6.Controllers
         }
 
         // GET: Forums/Details/5
+        [AllowAnonymous]
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -46,10 +58,22 @@ namespace Backend6.Controllers
         }
 
         // GET: Forums/Create
-        public IActionResult Create()
+        [Authorize(Roles = ApplicationRoles.Administrators)]
+        public async Task<IActionResult> Create(Guid? categoryId)
         {
-            ViewData["ForumCategoryId"] = new SelectList(_context.ForumCategories, "Id", "Name");
-            return View();
+            if (categoryId == null)
+            {
+                return this.NotFound();
+            }
+
+            var forumCategory = await this._context.ForumCategories.SingleOrDefaultAsync(x => x.Id == categoryId);
+
+            if (forumCategory == null)
+            {
+                return this.NotFound();
+            }
+            ViewBag.ForumCategory = forumCategory;
+            return View(new ForumModel());
         }
 
         // POST: Forums/Create
@@ -57,20 +81,40 @@ namespace Backend6.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,ForumCategoryId,Name,Description")] Forum forum)
+        [Authorize(Roles = ApplicationRoles.Administrators)]
+        public async Task<IActionResult> Create(Guid categoryId, ForumModel model)
         {
+            if (categoryId == null)
+            {
+                return this.NotFound();
+            }
+
+            var forumCategory = await this._context.ForumCategories.SingleOrDefaultAsync(x => x.Id == categoryId);
+
+            if (forumCategory == null)
+            {
+                return this.NotFound();
+            }
+
             if (ModelState.IsValid)
             {
-                forum.Id = Guid.NewGuid();
+                var forum = new Forum
+                {
+                    Id = Guid.NewGuid(),
+                    ForumCategoryId = forumCategory.Id,
+                    Name = model.Name,
+                    Description = model.Description
+                };
                 _context.Add(forum);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), "ForumCategories");
             }
-            ViewData["ForumCategoryId"] = new SelectList(_context.ForumCategories, "Id", "Name", forum.ForumCategoryId);
-            return View(forum);
+            ViewBag.ForumCategory = forumCategory;
+            return this.View(model);
         }
 
         // GET: Forums/Edit/5
+        [Authorize(Roles = ApplicationRoles.Administrators)]
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -83,8 +127,15 @@ namespace Backend6.Controllers
             {
                 return NotFound();
             }
-            ViewData["ForumCategoryId"] = new SelectList(_context.ForumCategories, "Id", "Name", forum.ForumCategoryId);
-            return View(forum);
+
+            var model = new ForumModel
+            {
+                Name = forum.Name,
+                Description = forum.Description
+            };
+
+            ViewBag.Forum = forum;
+            return View(model);
         }
 
         // POST: Forums/Edit/5
@@ -92,38 +143,35 @@ namespace Backend6.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,ForumCategoryId,Name,Description")] Forum forum)
+        [Authorize(Roles = ApplicationRoles.Administrators)]
+        public async Task<IActionResult> Edit(Guid? id, ForumModel model)
         {
-            if (id != forum.Id)
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var forum = await _context.Forums.SingleOrDefaultAsync(m => m.Id == id);
+          
+            if (forum == null)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(forum);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ForumExists(forum.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                forum.Name = model.Name;
+                forum.Description = model.Description;
+                _context.Update(forum);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index), "ForumCategories");
             }
-            ViewData["ForumCategoryId"] = new SelectList(_context.ForumCategories, "Id", "Name", forum.ForumCategoryId);
-            return View(forum);
+            ViewBag.Forum = forum;
+            return View(model);
         }
 
         // GET: Forums/Delete/5
+        [Authorize(Roles = ApplicationRoles.Administrators)]
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -138,24 +186,22 @@ namespace Backend6.Controllers
             {
                 return NotFound();
             }
-
+            ViewBag.Forum = forum;
             return View(forum);
         }
 
         // POST: Forums/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = ApplicationRoles.Administrators)]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var forum = await _context.Forums.SingleOrDefaultAsync(m => m.Id == id);
             _context.Forums.Remove(forum);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), "ForumCategories");
         }
 
-        private bool ForumExists(Guid id)
-        {
-            return _context.Forums.Any(e => e.Id == id);
-        }
+
     }
 }

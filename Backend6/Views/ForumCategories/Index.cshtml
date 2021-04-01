@@ -1,35 +1,53 @@
 ﻿@model IEnumerable<Backend6.Models.ForumCategory>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewBag.Title = "Forum";
+    Boolean admin = User.IsInRole(ApplicationRoles.Administrators);
 }
 
-<h2>Index</h2>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-                <th>
-                    @Html.DisplayNameFor(model => model.Name)
-                </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+<h2>Forum</h2>
+@foreach (var items in Model)
+{
+    <div class="panel panel-default forum-category">
+        <div class="panel-heading">
+            <strong>@items.Name</strong>
+            @if (admin)
+            {
+                <text>
+                    | <a asp-action="Edit" asp-controller="ForumCategories" asp-route-id="@items.Id">Edit</a>
+                    | <a asp-action="Delete" asp-controller="ForumCategories" asp-route-id="@items.Id">Delete</a>
+                    | <a asp-action="Create" asp-controller="Forums" asp-route-categoryId="@items.Id">Create forum</a>
+                </text>
+            }
+        </div>
+        <table class="table table-striped">
+            <tbody>
+                @foreach (var forum in items.Forums)
+                {
+                    <tr>
+                        <td>
+                            <a href="#" class="forum-name">@forum.Name</a>
+                            @if (admin)
+                            {
+                                <text> |<a asp-action="Edit" asp-controller="Forums" asp-route-id="@forum.Id">Edit</a>
+                                    | <a asp-action="Delete" asp-controller="Forums" asp-route-id="@forum.Id">Delete</a>
+                                </text>
+                            }
+                            <p>@forum.Description</p>
+                        </td>
+                        <td style="width: 150px">@(forum.ForumTopics !=null ? forum.ForumTopics.Count : 0 ) topic</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
-    </tbody>
-</table>
+
+@if (User.IsInRole(ApplicationRoles.Administrators))
+{
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a asp-action="Create">Create new category</a>
+        </div>
+    </div>
+}
