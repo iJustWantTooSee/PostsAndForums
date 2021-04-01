@@ -31,11 +31,11 @@ namespace Backend6.Controllers
         }
 
         // GET: Forums
-        public async Task<IActionResult> Index()
-        {
-            var applicationDbContext = _context.Forums.Include(f => f.ForumCategory);
-            return View(await applicationDbContext.ToListAsync());
-        }
+        //public async Task<IActionResult> Index()
+        //{
+        //    var applicationDbContext = _context.Forums.Include(f => f.ForumCategory);
+        //    return View(await applicationDbContext.ToListAsync());
+        //}
 
         // GET: Forums/Details/5
         [AllowAnonymous]
@@ -48,7 +48,10 @@ namespace Backend6.Controllers
 
             var forum = await _context.Forums
                 .Include(f => f.ForumCategory)
+                .Include(t=> t.ForumTopics)
+                .ThenInclude(x=>x.Creator)
                 .SingleOrDefaultAsync(m => m.Id == id);
+
             if (forum == null)
             {
                 return NotFound();
@@ -107,7 +110,7 @@ namespace Backend6.Controllers
                 };
                 _context.Add(forum);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index), "ForumCategories");
+                return RedirectToAction("Index", "ForumCategories");
             }
             ViewBag.ForumCategory = forumCategory;
             return this.View(model);
@@ -164,7 +167,7 @@ namespace Backend6.Controllers
                 forum.Description = model.Description;
                 _context.Update(forum);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index), "ForumCategories");
+                return RedirectToAction("Index", "ForumCategories");
             }
             ViewBag.Forum = forum;
             return View(model);
@@ -199,7 +202,7 @@ namespace Backend6.Controllers
             var forum = await _context.Forums.SingleOrDefaultAsync(m => m.Id == id);
             _context.Forums.Remove(forum);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index), "ForumCategories");
+            return RedirectToAction("Index", "ForumCategories");
         }
 
 

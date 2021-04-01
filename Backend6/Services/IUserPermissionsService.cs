@@ -7,6 +7,10 @@ namespace Backend6.Services
     {
         Boolean CanEditPost(Post post);
 
+        Boolean CanEditForumTopic(ForumTopic post);
+
+        Boolean CanEditForumMessage(ForumMessage post);
+
         Boolean CanEditPostComment(PostComment postComment);
     }
 }

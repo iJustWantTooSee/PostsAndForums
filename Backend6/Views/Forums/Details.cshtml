@@ -4,33 +4,36 @@
     ViewData["Title"] = "Details";
 }
 
-<h2>Details</h2>
+<h2>@Model.Name</h2>
+<p>@Model.Description</p>
 
-<div>
-    <h4>Forum</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.ForumCategory)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.ForumCategory.Name)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+@if (User.Identity.IsAuthenticated)
+{
+    <p>
+        <a asp-action="Create" asp-controller="ForumTopics" asp-route-forumId="@Model.Id">Create new topic</a>
+    </p>
+}
+
+
+<table class="table table-striped">
+    <tbody>
+        @foreach (var title in Model.ForumTopics)
+        {
+            <tr>
+                <td>
+                    <a asp-action="Details" asp-controller="ForumTopics" asp-route-id="@title.Id"  style="font-size: 1.3em">@title.Name</a><br />
+                    @title.Creator.UserName, @title.Created.DayOfWeek, @title.Created.Month @title.Created.Day, @title.Created.Year @title.Created.TimeOfDay
+                </td>
+                <td style="width: 100px">
+                    @(title.ForumMessages!=null? title.ForumMessages.Count : 0) replies
+                </td>
+                <td style="width: 220px">
+                    @title.Name<br />
+                    @title.Creator.UserName, @title.Created.DayOfWeek, @title.Created.Month @title.Created.Day, @title.Created.Year @title.Created.TimeOfDay
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+

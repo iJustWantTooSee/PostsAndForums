@@ -7,16 +7,27 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Backend6.Data;
 using Backend6.Models;
+using Backend6.Models.ForumViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Backend6.Services;
 
 namespace Backend6.Controllers
 {
+    [Authorize]
     public class ForumMessagesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> userManager;
+        private readonly IUserPermissionsService userPermissions;
 
-        public ForumMessagesController(ApplicationDbContext context)
+        public ForumMessagesController(ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+             IUserPermissionsService userPermissions)
         {
             _context = context;
+            this.userManager = userManager;
+            this.userPermissions = userPermissions;
         }
 
         // GET: ForumMessages
@@ -27,9 +38,10 @@ namespace Backend6.Controllers
         }
 
         // GET: ForumMessages/Details/5
-        public async Task<IActionResult> Details(Guid? id)
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(Guid? id, Guid? forumId)
         {
-            if (id == null)
+            if (id == null || forumId == null)
             {
                 return NotFound();
             }
@@ -37,8 +49,11 @@ namespace Backend6.Controllers
             var forumMessage = await _context.ForumMessages
                 .Include(f => f.Creator)
                 .Include(f => f.ForumTopic)
+                .Include(f=>f.ForumMessageAttachments)
                 .SingleOrDefaultAsync(m => m.Id == id);
-            if (forumMessage == null)
+            var forum = await this._context.Forums.SingleOrDefaultAsync(x => x.Id == forumId);
+
+            if (forumMessage == null || forum == null)
             {
                 return NotFound();
             }

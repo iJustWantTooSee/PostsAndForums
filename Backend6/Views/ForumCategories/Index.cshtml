@@ -26,7 +26,7 @@
                 {
                     <tr>
                         <td>
-                            <a href="#" class="forum-name">@forum.Name</a>
+                            <a asp-action="Details" asp-controller="Forums" asp-route-id="@forum.Id" class="forum-name">@forum.Name</a>
                             @if (admin)
                             {
                                 <text> |<a asp-action="Edit" asp-controller="Forums" asp-route-id="@forum.Id">Edit</a>

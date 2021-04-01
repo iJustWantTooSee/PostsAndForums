@@ -21,6 +21,36 @@ namespace Backend6.Services
 
         private HttpContext HttpContext => this.httpContextAccessor.HttpContext;
 
+        public Boolean CanEditForumMessage(ForumMessage post)
+        {
+            if (!this.HttpContext.User.Identity.IsAuthenticated)
+            {
+                return false;
+            }
+
+            if (this.HttpContext.User.IsInRole(ApplicationRoles.Administrators))
+            {
+                return true;
+            }
+
+            return this.userManager.GetUserId(this.httpContextAccessor.HttpContext.User) == post.CreatorId;
+        }
+
+        public Boolean CanEditForumTopic(ForumTopic post)
+        {
+            if (!this.HttpContext.User.Identity.IsAuthenticated)
+            {
+                return false;
+            }
+
+            if (this.HttpContext.User.IsInRole(ApplicationRoles.Administrators))
+            {
+                return true;
+            }
+
+            return this.userManager.GetUserId(this.httpContextAccessor.HttpContext.User) == post.CreatorId;
+        }
+
         public Boolean CanEditPost(Post post)
         {
             if (!this.HttpContext.User.Identity.IsAuthenticated)
