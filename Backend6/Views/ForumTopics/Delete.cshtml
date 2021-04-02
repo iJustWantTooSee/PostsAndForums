@@ -31,7 +31,7 @@
         </dd>
     </dl>
     
-    <form asp-action="Delete" asp-route-id="@ViewBag.ForumTopic.ForumId">
+    <form asp-action="Delete" asp-route-id="@ViewBag.ForumTopic.Id">
         <input type="submit" value="Delete" class="btn btn-default" /> |
         <a asp-action="Details" asp-controller="Forums" asp-route-id="@ViewBag.ForumTopic.ForumId">Back to List</a>
     </form>
