@@ -12,28 +12,10 @@
     <hr />
     <dl class="dl-horizontal">
         <dt>
-            @Html.DisplayNameFor(model => model.Created)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Created)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Modified)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Modified)
-        </dd>
-        <dt>
             @Html.DisplayNameFor(model => model.Text)
         </dt>
         <dd>
             @Html.DisplayFor(model => model.Text)
-        </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.Creator)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.Creator.Id)
         </dd>
         <dt>
             @Html.DisplayNameFor(model => model.ForumTopic)
@@ -43,9 +25,8 @@
         </dd>
     </dl>
     
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
+    <form asp-action="Delete" asp-route-id="@ViewBag.ForumMessage.Id" asp-route-forumTopicId="@ViewBag.ForumTopic.Id">
         <input type="submit" value="Delete" class="btn btn-default" /> |
-        <a asp-action="Index">Back to List</a>
+        <a asp-action="Details" asp-controller="ForumTopics" asp-route-id="@ViewBag.ForumTopic.Id">Back to List</a>
     </form>
 </div>

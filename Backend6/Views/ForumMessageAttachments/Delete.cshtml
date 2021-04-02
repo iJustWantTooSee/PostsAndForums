@@ -17,29 +17,23 @@
         <dd>
             @Html.DisplayFor(model => model.Created)
         </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.FileName)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.FileName)
-        </dd>
+        <div class="row">
+            <div class="col-sm-6 col-md-4">
+                <div class="thumbnail">
+                    <img src="@Model.FilePath" alt="Image" />
+                </div>
+            </div>
+        </div>
         <dt>
             @Html.DisplayNameFor(model => model.FilePath)
         </dt>
         <dd>
             @Html.DisplayFor(model => model.FilePath)
         </dd>
-        <dt>
-            @Html.DisplayNameFor(model => model.ForumMessage)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.ForumMessage.CreatorId)
-        </dd>
     </dl>
     
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
+    <form asp-action="Delete" asp-route-forumMessageId="@ViewBag.ForumMessage.Id" asp-route-forumTopicId="@ViewBag.ForumTopic.Id">
         <input type="submit" value="Delete" class="btn btn-default" /> |
-        <a asp-action="Index">Back to List</a>
+        <a asp-action="Details" asp-controller="ForumTopics" asp-route-id="@ViewBag.ForumTopic.Id">Back to List</a>
     </form>
 </div>

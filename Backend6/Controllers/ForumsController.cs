@@ -50,6 +50,8 @@ namespace Backend6.Controllers
                 .Include(f => f.ForumCategory)
                 .Include(t=> t.ForumTopics)
                 .ThenInclude(x=>x.Creator)
+                .Include(f=>f.ForumTopics)
+                .ThenInclude(m=>m.ForumMessages)
                 .SingleOrDefaultAsync(m => m.Id == id);
 
             if (forum == null)

@@ -50,6 +50,11 @@ namespace Backend6.Controllers
             var forumTopic = await _context.ForumTopics
                 .Include(f => f.Creator)
                 .Include(f => f.Forum)
+                .Include(f=>f.ForumMessages)
+                .ThenInclude(f=>f.Creator)
+                .Include(f=>f.ForumMessages)
+                .ThenInclude(f=>f.ForumMessageAttachments)
+                .Include(f=>f.Creator)
                 .SingleOrDefaultAsync(m => m.Id == id);
             if (forumTopic == null)
             {

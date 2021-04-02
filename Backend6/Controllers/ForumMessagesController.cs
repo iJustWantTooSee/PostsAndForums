@@ -30,43 +30,26 @@ namespace Backend6.Controllers
             this.userPermissions = userPermissions;
         }
 
-        // GET: ForumMessages
-        public async Task<IActionResult> Index()
-        {
-            var applicationDbContext = _context.ForumMessages.Include(f => f.Creator).Include(f => f.ForumTopic);
-            return View(await applicationDbContext.ToListAsync());
-        }
-
-        // GET: ForumMessages/Details/5
-        [AllowAnonymous]
-        public async Task<IActionResult> Details(Guid? id, Guid? forumId)
-        {
-            if (id == null || forumId == null)
-            {
-                return NotFound();
-            }
-
-            var forumMessage = await _context.ForumMessages
-                .Include(f => f.Creator)
-                .Include(f => f.ForumTopic)
-                .Include(f=>f.ForumMessageAttachments)
-                .SingleOrDefaultAsync(m => m.Id == id);
-            var forum = await this._context.Forums.SingleOrDefaultAsync(x => x.Id == forumId);
-
-            if (forumMessage == null || forum == null)
-            {
-                return NotFound();
-            }
-
-            return View(forumMessage);
-        }
 
         // GET: ForumMessages/Create
-        public IActionResult Create()
+        [Authorize]
+        public async Task<IActionResult> Create(Guid? forumTopicId)
         {
-            ViewData["CreatorId"] = new SelectList(_context.Users, "Id", "Id");
-            ViewData["ForumTopicId"] = new SelectList(_context.ForumTopics, "Id", "CreatorId");
-            return View();
+            if (forumTopicId == null)
+            {
+                return this.NotFound();
+            }
+
+            var forumTopic = await this._context.ForumTopics.SingleOrDefaultAsync(x => x.Id == forumTopicId);
+
+            if (forumTopic == null)
+            {
+                return this.NotFound();
+            }
+
+            ViewBag.ForumTopic = forumTopic;
+
+            return View(new ForumMessageModel());
         }
 
         // POST: ForumMessages/Create
@@ -74,36 +57,69 @@ namespace Backend6.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,CreatorId,ForumTopicId,Created,Modified,Text")] ForumMessage forumMessage)
+        [Authorize]
+        public async Task<IActionResult> Create(Guid? forumTopicId, ForumMessageModel model)
         {
-            if (ModelState.IsValid)
+            if (forumTopicId == null)
             {
-                forumMessage.Id = Guid.NewGuid();
+                return this.NotFound();
+            }
+
+            var forumTopic = await this._context.ForumTopics.SingleOrDefaultAsync(x => x.Id == forumTopicId);
+
+            if (forumTopic == null)
+            {
+                return this.NotFound();
+            }
+
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            if (ModelState.IsValid && user != null)
+            {
+                var now = DateTime.UtcNow;
+                var forumMessage = new ForumMessage
+                {
+                    Id = Guid.NewGuid(),
+                    CreatorId = user.Id,
+                    ForumTopicId = forumTopic.Id,
+                    Text = model.Text,
+                    Created = now,
+                    Modified = now
+                };
                 _context.Add(forumMessage);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Details", "ForumTopics", new { id = forumTopic.Id });
             }
-            ViewData["CreatorId"] = new SelectList(_context.Users, "Id", "Id", forumMessage.CreatorId);
-            ViewData["ForumTopicId"] = new SelectList(_context.ForumTopics, "Id", "CreatorId", forumMessage.ForumTopicId);
-            return View(forumMessage);
+            ViewBag.ForumTopic = forumTopic;
+            return View(model);
         }
 
         // GET: ForumMessages/Edit/5
-        public async Task<IActionResult> Edit(Guid? id)
+        [Authorize]
+        public async Task<IActionResult> Edit(Guid? id, Guid? forumTopicId)
         {
-            if (id == null)
+            if (id == null || forumTopicId == null)
             {
                 return NotFound();
             }
 
             var forumMessage = await _context.ForumMessages.SingleOrDefaultAsync(m => m.Id == id);
-            if (forumMessage == null)
+
+            var forumTopic = await _context.ForumTopics.SingleOrDefaultAsync(m => m.Id == forumTopicId);
+
+            if (forumMessage == null || forumTopic == null || !this.userPermissions.CanEditForumMessage(forumMessage))
             {
                 return NotFound();
             }
-            ViewData["CreatorId"] = new SelectList(_context.Users, "Id", "Id", forumMessage.CreatorId);
-            ViewData["ForumTopicId"] = new SelectList(_context.ForumTopics, "Id", "CreatorId", forumMessage.ForumTopicId);
-            return View(forumMessage);
+
+            var model = new ForumMessageModel
+            {
+                Text = forumMessage.Text
+            };
+
+            ViewBag.ForumTopic = forumTopic;
+            ViewBag.ForumMessage = forumMessage;
+            return View(model);
         }
 
         // POST: ForumMessages/Edit/5
@@ -111,72 +127,87 @@ namespace Backend6.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,CreatorId,ForumTopicId,Created,Modified,Text")] ForumMessage forumMessage)
+        [Authorize]
+        public async Task<IActionResult> Edit(Guid? id, Guid? forumTopicId, ForumMessageModel model)
         {
-            if (id != forumMessage.Id)
+            if (id == null || forumTopicId == null)
+            {
+                return NotFound();
+            }
+
+            var forumMessage = await _context.ForumMessages.SingleOrDefaultAsync(m => m.Id == id);
+
+            var forumTopic = await _context.ForumTopics.SingleOrDefaultAsync(m => m.Id == forumTopicId);
+
+            if (forumMessage == null || forumTopic == null || !this.userPermissions.CanEditForumMessage(forumMessage))
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(forumMessage);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ForumMessageExists(forumMessage.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                forumMessage.Modified = DateTime.UtcNow;
+                forumMessage.Text = model.Text;
+                _context.Update(forumMessage);
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Details", "ForumTopics", new { id = forumTopic.Id });
             }
-            ViewData["CreatorId"] = new SelectList(_context.Users, "Id", "Id", forumMessage.CreatorId);
-            ViewData["ForumTopicId"] = new SelectList(_context.ForumTopics, "Id", "CreatorId", forumMessage.ForumTopicId);
-            return View(forumMessage);
+            ViewBag.ForumTopic = forumTopic;
+            ViewBag.ForumMessage = forumMessage;
+            return View(model);
         }
 
         // GET: ForumMessages/Delete/5
-        public async Task<IActionResult> Delete(Guid? id)
+        [Authorize]
+        public async Task<IActionResult> Delete(Guid? id, Guid? forumTopicId)
         {
-            if (id == null)
+            if (id == null || forumTopicId == null)
             {
                 return NotFound();
             }
+
+            var forumTopic = await _context.ForumTopics.SingleOrDefaultAsync(m => m.Id == forumTopicId);
+
 
             var forumMessage = await _context.ForumMessages
                 .Include(f => f.Creator)
                 .Include(f => f.ForumTopic)
                 .SingleOrDefaultAsync(m => m.Id == id);
-            if (forumMessage == null)
+
+            if (forumMessage == null || forumTopic == null || !this.userPermissions.CanEditForumMessage(forumMessage))
             {
                 return NotFound();
             }
 
+            ViewBag.ForumTopic = forumTopic;
+            ViewBag.ForumMessage = forumMessage;
             return View(forumMessage);
         }
 
         // POST: ForumMessages/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        [Authorize]
+        public async Task<IActionResult> DeleteConfirmed(Guid? id, Guid? forumTopicId)
         {
+            if (id == null || forumTopicId == null)
+            {
+                return NotFound();
+            }
+
             var forumMessage = await _context.ForumMessages.SingleOrDefaultAsync(m => m.Id == id);
+
+            var forumTopic = await _context.ForumTopics.SingleOrDefaultAsync(m => m.Id == forumTopicId);
+
+            if (forumMessage == null || forumTopic == null || !this.userPermissions.CanEditForumMessage(forumMessage))
+            {
+                return NotFound();
+            }
+            ViewBag.ForumTopic = forumTopic;
+            ViewBag.ForumMessage = forumMessage;
             _context.ForumMessages.Remove(forumMessage);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool ForumMessageExists(Guid id)
-        {
-            return _context.ForumMessages.Any(e => e.Id == id);
+            return RedirectToAction("Details", "ForumTopics", new { id = forumTopic.Id });
         }
     }
 }

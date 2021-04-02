@@ -8,10 +8,6 @@ namespace Backend6.Models.ForumViewModels
 {
     public class ForumMessageModel
     {
-        public DateTime Created { get; set; }
-
-        public DateTime Modified { get; set; }
-
         [Required]
         public String Text { get; set; }
     }

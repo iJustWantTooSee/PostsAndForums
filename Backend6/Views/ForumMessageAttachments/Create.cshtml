@@ -1,4 +1,4 @@
-﻿@model Backend6.Models.ForumMessageAttachment
+﻿@model Backend6.Models.ForumViewModels.ForumMessageAttachmentModel
 
 @{
     ViewData["Title"] = "Create";
@@ -10,26 +10,14 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" asp-route-messageId="@ViewBag.ForumMessage.Id" asp-route-forumTopicId="@ViewBag.ForumTopic.Id" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="ForumMessageId" class="control-label"></label>
-                <select asp-for="ForumMessageId" class ="form-control" asp-items="ViewBag.ForumMessageId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Created" class="control-label"></label>
-                <input asp-for="Created" class="form-control" />
-                <span asp-validation-for="Created" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="FileName" class="control-label"></label>
-                <input asp-for="FileName" class="form-control" />
-                <span asp-validation-for="FileName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="FilePath" class="control-label"></label>
-                <input asp-for="FilePath" class="form-control" />
-                <span asp-validation-for="FilePath" class="text-danger"></span>
+                <label asp-for="File" class="col-md-2 control-label"></label>
+                <div class="col-md-10">
+                    <input type="file" asp-for="File" class="form-control" />
+                    <span asp-validation-for="File" class="text-danger"></span>
+                </div>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-default" />
@@ -39,7 +27,7 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Details" asp-controller="ForumTopics" asp-route-id="@ViewBag.ForumTopic.Id">Back to List</a>
 </div>
 
 @section Scripts {

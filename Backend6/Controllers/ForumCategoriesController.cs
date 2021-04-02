@@ -35,6 +35,7 @@ namespace Backend6.Controllers
         {
             var items = await this._context.ForumCategories
                 .Include(x => x.Forums)
+                .ThenInclude(f=>f.ForumTopics)
                 .ToListAsync();
             return this.View(items);
         }

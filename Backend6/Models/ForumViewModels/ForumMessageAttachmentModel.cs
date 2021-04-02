@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace Backend6.Models.ForumViewModels
 {
@@ -11,9 +12,6 @@ namespace Backend6.Models.ForumViewModels
         public DateTime Created { get; set; }
 
         [Required]
-        public String FileName { get; set; }
-
-        [Required]
-        public String FilePath { get; set; }
+        public IFormFile File { get; set; }
     }
 }
