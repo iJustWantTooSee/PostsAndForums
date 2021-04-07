@@ -19,6 +19,9 @@
     <tbody>
         @foreach (var title in Model.ForumTopics)
         {
+            {
+                var lastMessage = title.ForumMessages.Any() ? title.ForumMessages.OrderByDescending(x => x.Created).First() : null;
+            
             <tr>
                 <td>
                     <a asp-action="Details" asp-controller="ForumTopics" asp-route-id="@title.Id"  style="font-size: 1.3em">@title.Name</a><br />
@@ -28,10 +31,12 @@
                     @(title.ForumMessages.Count) replies
                 </td>
                 <td style="width: 220px">
-                    @title.Name<br />
-                    @title.Creator.UserName, @title.Created.DayOfWeek, @title.Created.Month @title.Created.Day, @title.Created.Year @title.Created.TimeOfDay
+                    <br />
+                    @(lastMessage !=null? lastMessage.Creator.UserName : title.Creator.UserName),
+                    @(lastMessage != null ? lastMessage.Created.DayOfWeek : title.Created.DayOfWeek), @(lastMessage != null ? lastMessage.Created.Month :title.Created.Month) @(lastMessage != null ? lastMessage.Created.Day :title.Created.Day), @(lastMessage != null ? lastMessage.Created.Year :title.Created.Year) @(lastMessage != null ? lastMessage.Created.TimeOfDay :title.Created.TimeOfDay)
                 </td>
             </tr>
+            }
         }
     </tbody>
 </table>
