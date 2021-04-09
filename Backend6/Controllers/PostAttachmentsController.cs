@@ -73,6 +73,13 @@ namespace Backend6.Controllers
                 return this.NotFound();
             }
 
+            if (model.File == null)
+            {
+                this.ModelState.AddModelError(nameof(model.File), "This file is empty");
+                this.ViewBag.Post = post;
+                return this.View(model);
+            }
+
             var fileName = Path.GetFileName(ContentDispositionHeaderValue.Parse(model.File.ContentDisposition).FileName.Value.Trim('"'));
             var fileExt = Path.GetExtension(fileName);
             if (!PostAttachmentsController.AllowedExtensions.Contains(fileExt))

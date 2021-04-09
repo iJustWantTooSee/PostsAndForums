@@ -82,6 +82,14 @@ namespace Backend6.Controllers
                 return this.NotFound();
             }
 
+            if (model.File == null)
+            {
+                this.ModelState.AddModelError(nameof(model.File), "This is empty");
+                ViewBag.ForumMessage = message;
+                ViewBag.ForumTopic = forumTopic;
+                return View(model);
+            }
+
             var fileName = Path.GetFileName(ContentDispositionHeaderValue.Parse(model.File.ContentDisposition).FileName.Value.Trim('"'));
             var fileExt = Path.GetExtension(fileName);
             if (!ForumMessageAttachmentsController.AllowedExtensions.Contains(fileExt))
